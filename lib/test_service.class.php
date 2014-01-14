@@ -40,7 +40,7 @@ class weather_service
     // {{{ members start
 
     /**
-     * 百度ak
+     * @see weixin_message_service
      */
     private $__app = null;
 
