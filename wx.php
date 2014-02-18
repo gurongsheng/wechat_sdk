@@ -3,7 +3,7 @@
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4 foldmethod=marker: */
 
 /**
- * 微信天气服务 
+ * 微信服务 
  *
  * @author  gurongsheng@gmail.com 
  */
@@ -11,7 +11,7 @@ require_once 'config.php';
 
 require_once PATH_LIB . 'weixin_message_service.class.php';
 require_once PATH_LIB . 'weixin_robot_service.class.php';
-require_once PATH_LIB . 'weather_service.class.php';
+require_once PATH_LIB . 'test_service.class.php';
 
 $robot = new weixin_robot_service();
 

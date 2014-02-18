@@ -35,7 +35,7 @@ require_once 'weixin_robot_service.class.php';
  *
  * @author  gurongsheng@gmail.com 
  */
-class weather_service
+class test_service
 {
     // {{{ members start
 
