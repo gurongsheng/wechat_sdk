@@ -174,6 +174,12 @@ class weixin_message_service
      */
     private static $__access_token = null;
 
+    /**
+     * 微信开放平台中的二维码ticket
+     */
+    private static $__qrcode_ticket = null;
+    
+
     // }}} members end
     // {{{ functions start
     
@@ -819,9 +825,98 @@ class weixin_message_service
     }
 
     // }}}
+    // {{{ public function create_qrcode_ticket()
+    /**
+     * 创建二维码ticket
+     *
+     * @param {int}   $scene_id        场景值ID，临时二维码时为32位非0整型，永久二维码时最大值为100000（目前参数只支持1--100000）
+     * @param {bool}  $action_type     默认生成二维码类型为临时，true为永久 
+     * @param {int}   $expire_seconds  设置临时二维码的有效时间，最大1800秒
+     */
+    public function create_qrcode_ticket($scene_id, $action_type = false, $expire_seconds = 1800)
+    {
+        //接收$action_type参数判断生成二维码的类型是永久或者临时
+        $action_name = $action_type ? 'QR_LIMIT_SCENE' : 'QR_SCENE';
 
+        //判断接收的秒数是否为整形且大于1800秒，返回最大为1800的整形数字
+        $expire_seconds = $expire_seconds >= 1800 ? 1800 : $expire_seconds;
+
+        $this->get_access_token();
+
+        $url = 'https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=' . self::$__access_token;
+
+        //根据二维码类型生成不同的参数
+        if ($action_type) {
+            if (($scene_id < 1) || ($scene > 100000)) {
+                throw new exception('永久二维码场景ID不合法');
+            }
+            
+            //{"action_name": "QR_LIMIT_SCENE", "action_info": {"scene": {"scene_id": 123} } }
+            $msg = array(
+                'action_name' => $action_name,
+                'action_info' => array('scene' => array('scene_id' => $scene_id))
+            );
+        } else {
+
+            //{"expire_seconds": 1800, "action_name": "QR_SCENE", "action_info": {"scene": {"scene_id": 123} } }
+            $msg = array(
+                'expire_seconds' => $expire_seconds,
+                'action_name'    => $action_name,
+                'action_info'    => array('scene' => array('scene_id' => $scene_id))
+            );
+        }
+        
+        $ch = curl_init();
+        $msg = json_encode($msg);
+
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: application/json; charset=UTF-8'));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $msg);
+        $res = curl_exec($ch);
+        
+        if(curl_errno($ch)) {
+            throw new exception(curl_error($ch), curl_errno($ch));
+        }
+
+        try {
+            $res = $this->__parse_json_result($res); 
+        } catch (exception $e) {
+            if ($e->getCode() == '42001') {
+                $this->get_access_token(true);
+                return $this->create_qrcode_ticket($scene_id, $action_type = false, $expire_seconds = 1800);
+            } 
+            throw $e;
+        }
+
+        if (isset($res['errcode']) && ($res['errcode'] != 0)) {
+            throw new exception('创建二维码ticket失败。');
+        }
+        
+        self::$__qrcode_ticket = $res;
+
+        return true;
+    }
+
+    // }}}
+    // {{{ public static function get_qrcode_from_ticket()
+    /**
+     * 通过ticket换取二维码
+     *
+     */
+    public static function get_qrcode_from_ticket()
+    {
+
+        $url = 'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket==' . rawurlencode( self::$__qrcode_ticket['ticket'] );
+            
+        return $url;
+
+    }
+
+    // }}}
     // }}}
 }
 
 // }}}
-
