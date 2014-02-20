@@ -839,26 +839,26 @@ class weixin_message_service
         $action_name = $action_type ? 'QR_LIMIT_SCENE' : 'QR_SCENE';
 
         //判断接收的秒数是否为整形且大于1800秒，返回最大为1800的整形数字
-        $expire_seconds = ($expire_seconds - 0) >= 1800 ? 1800 :($expire_seconds - 0);
+        $expire_seconds = $expire_seconds >= 1800 ? 1800 : $expire_seconds;
 
         $this->get_access_token();
 
-        $url = 'https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=' . self::$__access_token);
+        $url = 'https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=' . self::$__access_token;
 
         //根据二维码类型生成不同的参数
-        if($action_type){
-            if(!(1<=$scene_id<=100000)){
+        if ($action_type) {
+            if (($scene_id < 1) || ($scene > 100000)) {
                 throw new exception('永久二维码场景ID不合法');
             }
-            //{"action_name": "QR_LIMIT_SCENE", "action_info": {"scene": {"scene_id": 123}}}
+            
+            //{"action_name": "QR_LIMIT_SCENE", "action_info": {"scene": {"scene_id": 123} } }
             $msg = array(
                 'action_name' => $action_name,
                 'action_info' => array('scene' => array('scene_id' => $scene_id))
             );
         } else {
-            //临时二维码时为32位非0整型~~~~~~~未解决判断问题~~~~~~
 
-            //{"expire_seconds": 1800, "action_name": "QR_SCENE", "action_info": {"scene": {"scene_id": 123}}}
+            //{"expire_seconds": 1800, "action_name": "QR_SCENE", "action_info": {"scene": {"scene_id": 123} } }
             $msg = array(
                 'expire_seconds' => $expire_seconds,
                 'action_name'    => $action_name,
@@ -872,15 +872,11 @@ class weixin_message_service
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_HEADER, 0);
-        //curl_setopt($ch, CURLOPT_VERBOSE, 1);
-        //curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: application/json; charset=UTF-8',));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: application/json; charset=UTF-8'));
         curl_setopt($ch, CURLOPT_POSTFIELDS, $msg);
         $res = curl_exec($ch);
-
-        self::$__qrcode_ticket = $res;
-
+        
         if(curl_errno($ch)) {
             throw new exception(curl_error($ch), curl_errno($ch));
         }
@@ -898,6 +894,8 @@ class weixin_message_service
         if (isset($res['errcode']) && ($res['errcode'] != 0)) {
             throw new exception('创建二维码ticket失败。');
         }
+        
+        self::$__qrcode_ticket = $res;
 
         return true;
     }
@@ -911,7 +909,7 @@ class weixin_message_service
     public static function get_qrcode_from_ticket()
     {
 
-        $url = 'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket==' . urlencode(self::$__qrcode_ticket['ticket']);
+        $url = 'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket==' . rawurlencode( self::$__qrcode_ticket['ticket'] );
             
         return $url;
 
