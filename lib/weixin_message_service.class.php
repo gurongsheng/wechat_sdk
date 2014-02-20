@@ -916,7 +916,11 @@ class weixin_message_service
     }
 
     // }}}
-    // }}}
+   // }}}
 }
 
 // }}}
+$test = new weixin_message_service('wxb0631007daa91dfd','9b467411dc8417bb72f4fb037090e854');
+
+$res = $test -> create_qrcode_ticket(123);
+var_dump($res);
