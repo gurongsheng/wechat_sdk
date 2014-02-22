@@ -901,12 +901,12 @@ class weixin_message_service
     }
 
     // }}}
-    // {{{ public static function get_qrcode_from_ticket()
+    // {{{ public static function get_qrcode_url()
     /**
      * 通过ticket换取二维码
      *
      */
-    public static function get_qrcode_from_ticket()
+    public static function get_qrcode_url()
     {
 
         $url = 'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket==' . rawurlencode( self::$__qrcode_ticket['ticket'] );
@@ -920,7 +920,3 @@ class weixin_message_service
 }
 
 // }}}
-$test = new weixin_message_service('wxb0631007daa91dfd','9b467411dc8417bb72f4fb037090e854');
-
-$res = $test -> create_qrcode_ticket(123);
-var_dump($res);
