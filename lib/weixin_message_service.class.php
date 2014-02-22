@@ -118,11 +118,6 @@ class weixin_message_service
     // {{{ members start
 
     /**
-     * 微信平台token
-     */
-    private static $__weixin_token = 'zaq1xsw2';
-
-    /**
      * 消息类型映射
      */
     private static $__msg_type_map = array(
@@ -226,9 +221,9 @@ class weixin_message_service
      *
      * @return {boolean}
      */
-    public static function check_message_valid($signature, $timestamp, $nonce)
+    public static function check_message_valid($signature, $timestamp, $nonce, $__weixin_token)
     {
-        $params = array(self::$__weixin_token, $timestamp, $nonce);
+        $params = array($__weixin_token, $timestamp, $nonce);
         sort($params);
         $sign = sha1(implode($params));
         if ($sign !== $signature) {

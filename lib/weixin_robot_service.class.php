@@ -61,7 +61,7 @@ class weixin_robot_service
         $timestamp = $this->get_query('timestamp');
         $nonce = $this->get_query('nonce');
 
-        if (!weixin_message_service::check_message_valid($signature, $timestamp, $nonce)) {
+        if (!weixin_message_service::check_message_valid($signature, $timestamp, $nonce, WEIXIN_TOKEN)) {
             return;
         }
 
@@ -597,6 +597,9 @@ class weixin_robot_service
     }
 
     // }}}
+
+    // }}} functions end
+
 }
 
 // }}}

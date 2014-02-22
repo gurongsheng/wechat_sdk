@@ -7,7 +7,7 @@
  *
  * @author  gurongsheng@gmail.com 
  */
-require_once 'config.php';
+require_once 'conf/config.php';
 
 require_once PATH_LIB . 'weixin_message_service.class.php';
 require_once PATH_LIB . 'weixin_robot_service.class.php';

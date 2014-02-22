@@ -27,6 +27,7 @@ define('REDIS_KEY_PQUEUE', REDIS_KEY_PREFIX . 'pqueue');
 //机器人pid文件
 define('ROBOT_PID_FILE', PATH_RUN . 'robot.pid');
 
+define('WEIXIN_TOKEN', 'your wechat appid');//替换成自己的微信公众号token
 define('WEIXIN_APPID', 'your wechat appid');//替换成自己的微信公众号appid
 define('WEIXIN_SECRET', 'your wechat secret');//替换成自己的微信公众号app secret
 
