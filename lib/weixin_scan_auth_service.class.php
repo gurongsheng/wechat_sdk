@@ -188,7 +188,69 @@ class weixin_scan_auth_service
     }
 
     // }}}
+    // {{{ public function somebody_scanned()
+    
+    /**
+     * 微信用户扫描后，执行该方法更新队列信息
+     *
+     * @param {string} $open_id  用户id
+     * @param {string} $scene_id 场景id
+     * 
+     */
+    public function somebody_scanned($open_id, $scene_id)
+    {
+        $this->connect(); 
+                
+        $num = self::$__db->exec('update ' . $this->table_name('auth_queue') . ' set open_id="' . self::$__db->quote($open_id) . '" where open_id <> \'\' and unix_timestamp()-create_time <=ttl and scene_id=' . self::$__db->quote($scene_id));
+        if (!$num) {
+            throw new exception('二维码已过期。');
+        }
+    }
+
+    // }}}
+    // {{{ public function check_somebody_scanned()
+    
+    /**
+     * 检查用户是否扫描过
+     *
+     * @param {string} $module 模块 
+     * 
+     */
+    public function check_somebody_scanned($module)
+    {
+        $this->connect(); 
+        
+        $session_key_qrcode = 'scene_id' . $module . 'qrcode';
+        $session_key_ticket = 'scene_id' . $module . 'ticket';
+        $client_id = session_id();
+            
+        $session_qrcode = $this->session($session_key_qrcode);
+        $session_ticket = $this->session($session_key_ticket);
+                
+        if (!$session_ticket || !$session_qrcode) {
+            throw new exception('没有可以扫描的二维码。');
+        }
+
+        $smt = self::$__db->prepare('select * from ' . $this->table_name('auth_queue') . ' where UNIX_TIMESTAMP() - create_time <= ttl and client_id=? and module=? and scene_id=?');
+        $smt->execute(array($client_id, $module, $session_qrcode));
+        $res = $smt->fetch(PDO::FETCH_ASSOC);
+        if (empty($res)) {
+            throw new exception('二维码已经过期。');
+        }
+
+        $open_id = $res['open_id'];
+        if (!$open_id) {
+            return false;
+        } else {
+            self::$__db->exec('delete frome ' . $this->table_name('auth_queue') . ' where queue_id=' . $res['queue_id']);
+            $this->unset_session($session_key_ticket);
+            $this->unset_session($session_key_qrcode);
+            return $open_id;
+        }
+
+    }
+
+    // }}}
        
     // }}} functions end
-
 }
