@@ -906,7 +906,55 @@ class weixin_message_service
     }
 
     // }}}
-   // }}}
+    // {{{ public function get_user_base_profile()
+
+    /**
+     * 获取用户基本信息
+     *
+     * @param {string} $open_id 关注者对本公众号的OpenID
+     * @param {string} $lang 返回国家地区语言版本，默认简体，可接受的值为：zh_CN/zh_TW/en 分别代表简体/繁体/英语
+     */
+    public function get_user_base_profile($open_id, $lang = 'zh_CN')
+    {
+        //检测传入的语言版本，不符合类型的默认返回简体中文
+        $lang = ($lang == 'zh_CN' || $lang == 'zh_TW' || $lang == 'en') ? $lang : 'zh_CN';
+        $this->get_access_token();
+
+        $url = sprintf('http://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=%s', self::$__access_stoken, $open_id, $lang);
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        $res = curl_exec($ch);
+
+        if(curl_errno($ch)) {
+            throw new exception(curl_error($ch), curl_errno($ch));
+        }
+
+        try {
+            $res = $this->__parse_json_result($res);
+        } catch (exception $e) {
+            if ($e->getCode() == '42001') {
+                $this->get_access_token(true);
+                return $this->get_user_base_profile($open_id, $lang = 'zh_CN');
+            }
+
+            throw $e;
+        }
+
+        if (isset($res['errcode']) && ($res['errcode'] != 0)) {
+            throw new exception('获取用户基本信息失败');
+        }
+
+        return $res;
+    }
+
+
+    // }}}
+    
+    // }}}
 }
 
 // }}}
